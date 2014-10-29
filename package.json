@@ -1,7 +1,7 @@
 {
   "name": "syntax-tree",
   "main": "./lib/syntax-tree",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Syntax-aware editing for atom",
   "activationEvents": [
     "syntax-tree:select-up",
