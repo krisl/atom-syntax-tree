@@ -10,7 +10,7 @@
     "syntax-tree:select-right",
     "syntax-tree:print-tree"
   ],
-  "repository": "https://githu b.com/maxbrunsfeld/atom-syntax-tree",
+  "repository": "https://github.com/maxbrunsfeld/atom-syntax-tree",
   "license": "MIT",
   "engines": {
     "atom": ">0.50.0"
