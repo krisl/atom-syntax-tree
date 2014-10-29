@@ -1,7 +1,13 @@
 Document = require("tree-sitter").Document
-jsLanguage = require("tree-sitter-javascript")
 TextBufferInput = require("./text-buffer-input")
 {Range} = require("atom")
+
+LANGUAGE_SCOPE_REGEX = /source.(\w+)/
+
+LANGUAGES_MODULES =
+  "js": "tree-sitter-javascript"
+  "go": "tree-sitter-golang"
+  "c": "tree-sitter-c"
 
 module.exports =
 class Controller
@@ -86,10 +92,10 @@ class Controller
     editor.scrollToScreenRange(editor.screenRangeForBufferRange(newRanges[0]))
 
   getDocument: (editor) ->
-    editor.syntaxTreeDocument ?= do ->
+    editor.syntaxTreeDocument ?= do =>
       document = new Document()
-        .setLanguage(jsLanguage)
         .setInput(new TextBufferInput(editor.buffer))
+        .setLanguage(@getEditorLanguage(editor))
 
       editor.buffer.onDidChange ({ oldRange, newRange, newText, oldText }) ->
         document.edit
@@ -101,3 +107,13 @@ class Controller
 
   currentEditor: ->
     @workspaceView.getActiveView().editor
+
+  getEditorLanguage: (editor) ->
+    for scope in editor.scopesForBufferPosition([0, 0])
+      if match = scope.match(LANGUAGE_SCOPE_REGEX)
+        languageName = match[1]
+        if languageModule = LANGUAGES_MODULES[languageName]
+          return require(languageModule)
+        else
+          throw new Error("Unsupported language '#{languageName}'")
+    throw new Error("Couldn't determine language for buffer.")
