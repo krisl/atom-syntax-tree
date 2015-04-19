@@ -11,16 +11,15 @@ LANGUAGES_MODULES =
 
 module.exports =
 class Controller
-  constructor: (@workspaceView) ->
+  constructor: (@workspace, @workspaceElement) ->
 
   start: ->
-    @workspaceView.command "syntax-tree:select-up", => @selectUp()
-    @workspaceView.command "syntax-tree:select-down", => @selectDown()
-    @workspaceView.command "syntax-tree:select-left", => @selectLeft()
-    @workspaceView.command "syntax-tree:select-right", => @selectRight()
-
-    @workspaceView.command "syntax-tree:print-tree", => @printTree()
-    @workspaceView.command "syntax-tree:toggle-debug", => @toggleDebug()
+    atom.commands.add(@workspaceElement, "syntax-tree:select-up", @selectUp.bind(this))
+    atom.commands.add(@workspaceElement, "syntax-tree:select-down", @selectDown.bind(this))
+    atom.commands.add(@workspaceElement, "syntax-tree:select-left", @selectLeft.bind(this))
+    atom.commands.add(@workspaceElement, "syntax-tree:select-right", @selectRight.bind(this))
+    atom.commands.add(@workspaceElement, "syntax-tree:print-tree", @printTree.bind(this))
+    atom.commands.add(@workspaceElement, "syntax-tree:toggle-debug", @toggleDebug.bind(this))
 
   stop: ->
 
@@ -106,10 +105,10 @@ class Controller
       document
 
   currentEditor: ->
-    @workspaceView.getActiveView().editor
+    @workspace.getActiveTextEditor()
 
   getEditorLanguage: (editor) ->
-    for scope in editor.scopesForBufferPosition([0, 0])
+    for scope in editor.getLastCursor().getScopeDescriptor().getScopesArray()
       if match = scope.match(LANGUAGE_SCOPE_REGEX)
         languageName = match[1]
         if languageModule = LANGUAGES_MODULES[languageName]

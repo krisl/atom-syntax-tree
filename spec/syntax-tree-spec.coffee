@@ -1,27 +1,32 @@
-{WorkspaceView, EditorView, Point} = require 'atom'
+{Workspace, TextEditor, Point} = require 'atom'
 Controller = require '../lib/controller'
 
 describe "SyntaxTree", ->
-  [workspaceView, controller, editorView] = []
+  [workspace, workspaceElement, controller, editor] = []
 
   beforeEach ->
-    workspaceView = new WorkspaceView
-    controller = new Controller(workspaceView)
+    workspace = new Workspace
+    workspaceElement = atom.views.getView(workspace)
+    controller = new Controller(workspace, workspaceElement)
     controller.start()
 
-    editorView = setUpActiveEditorView(workspaceView)
-    editorView.editor.setText(trim("""
+    editor = setUpActiveEditor(workspace)
+    editor.setText(trim("""
       var x = { theKey: "the-value" };
       console.log(x);
     """))
 
+    waitsForPromise ->
+      atom.packages.activatePackage("language-javascript").then ->
+        editor.setGrammar(atom.grammars.grammarForScopeName("source.js"))
+
   describe "when a syntax-tree:select-up event is triggered", ->
     beforeEach ->
-      editorView.editor.setCursorBufferPosition(new Point(0, "var x = { the".length))
-      workspaceView.trigger 'syntax-tree:select-up'
+      editor.setCursorBufferPosition(new Point(0, "var x = { the".length))
+      atom.commands.dispatch(workspaceElement, 'syntax-tree:select-up')
 
     it "parses the document", ->
-      programNode = editorView.editor.syntaxTreeDocument.children[0]
+      programNode = editor.syntaxTreeDocument.children[0]
       expect(programNode.toString()).toEqual(trim("""
         (program
           (var_declaration (var_assignment
@@ -33,38 +38,38 @@ describe "SyntaxTree", ->
       """))
 
     it "highlights the syntax node under the cursor", ->
-      expect(editorView.editor.getSelectedText()).toEqual("theKey")
+      expect(editor.getSelectedText()).toEqual("theKey")
 
     describe "when select-up is triggered again", ->
       it "highlights the parent of the previously highlighted node", ->
-        workspaceView.trigger 'syntax-tree:select-up'
-        expect(editorView.editor.getSelectedText()).toEqual('theKey: "the-value"')
+        atom.commands.dispatch(workspaceElement, 'syntax-tree:select-up')
+        expect(editor.getSelectedText()).toEqual('theKey: "the-value"')
 
     describe "when select-down is triggered", ->
       it "highlights the first child of the previously highlighted node", ->
-        workspaceView.trigger 'syntax-tree:select-up'
-        workspaceView.trigger 'syntax-tree:select-down'
-        expect(editorView.editor.getSelectedText()).toEqual('theKey')
+        atom.commands.dispatch(workspaceElement, 'syntax-tree:select-up')
+        atom.commands.dispatch(workspaceElement, 'syntax-tree:select-down')
+        expect(editor.getSelectedText()).toEqual('theKey')
 
     describe "when select-left is triggered", ->
       it "highlights the left sibling of the previously highlighted node", ->
-        workspaceView.trigger 'syntax-tree:select-left'
-        expect(editorView.editor.getSelectedText()).toEqual("x")
+        atom.commands.dispatch(workspaceElement, 'syntax-tree:select-left')
+        expect(editor.getSelectedText()).toEqual("x")
 
     describe "when select-right is triggered", ->
       it "highlights the left sibling of the previously highlighted node", ->
-        workspaceView.trigger 'syntax-tree:select-right'
-        expect(editorView.editor.getSelectedText()).toEqual('"the-value"')
+        atom.commands.dispatch(workspaceElement, 'syntax-tree:select-right')
+        expect(editor.getSelectedText()).toEqual('"the-value"')
 
     describe "when the document is edited", ->
       beforeEach ->
-        editorView.editor.buffer.insert(
+        editor.buffer.insert(
           new Point(0, 'var x = { theKey: "the-value"'.length),
           ', otherKey: "other-value" '
         )
 
       it "updates the parse tree", ->
-        programNode = editorView.editor.syntaxTreeDocument.children[0]
+        programNode = editor.syntaxTreeDocument.children[0]
         expect(programNode.toString()).toEqual(trim("""
           (program
             (var_declaration (var_assignment
@@ -77,10 +82,10 @@ describe "SyntaxTree", ->
 
 # Helpers
 
-setUpActiveEditorView = (parentView) ->
-  editorView = new EditorView(mini: true)
-  spyOn(parentView, 'getActiveView').andReturn(editorView)
-  editorView
+setUpActiveEditor = (workspace) ->
+  editor = new TextEditor({})
+  spyOn(workspace, 'getActiveTextEditor').andReturn(editor)
+  editor
 
 trim = (string) ->
   string

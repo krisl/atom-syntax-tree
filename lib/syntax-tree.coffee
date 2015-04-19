@@ -4,7 +4,7 @@ module.exports =
   syntaxTreeView: null
 
   activate: (state) ->
-    @controller = new Controller(atom.workspaceView)
+    @controller = new Controller(atom.workspace, atom.views.getView(atom.workspace))
     @controller.start()
 
   deactivate: ->
