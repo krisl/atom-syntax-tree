@@ -1,4 +1,4 @@
-'.workspace':
+'atom-text-editor:not([mini])':
   'ctrl-alt-up': 'syntax-tree:select-up'
   'ctrl-alt-down': 'syntax-tree:select-down'
   'ctrl-alt-left': 'syntax-tree:select-left'
