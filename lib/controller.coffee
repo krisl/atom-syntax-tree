@@ -30,14 +30,14 @@ LANGUAGES_MODULES =
 
 class SyntaxState
   constructor: (editor) ->
-    @nodeStack = []
+    @nodeStacks = []
     @document = new Document()
       .setInput(new TextBufferInput(editor.buffer))
       .setLanguage(getEditorLanguage(editor))
       .parse()
 
     editor.buffer.onDidTransact =>
-      @nodeStack.length = 0
+      @nodeStacks.length = 0
       @document.parse()
     editor.buffer.onDidChange ({oldRange, newRange, newText, oldText}) =>
       @document.edit(
@@ -81,7 +81,7 @@ class Controller
       )
 
   selectUp: ->
-    @updatedSelectedNode (node, nodeStack, size) ->
+    @updatedSelectedNodes (node, nodeStack, size) ->
       newNode = node
       while newNode and newNode.size is size
         newNode = newNode.parent
@@ -90,7 +90,7 @@ class Controller
         newNode
 
   selectDown: ->
-    @updatedSelectedNode (node, nodeStack, currentStart, currentEnd) ->
+    @updatedSelectedNodes (node, nodeStack, currentStart, currentEnd) ->
       if nodeStack.length > 0
         nodeStack.pop()
       else if node.children.length > 0
@@ -99,7 +99,7 @@ class Controller
         null
 
   selectLeft: ->
-    @updatedSelectedNode (node, nodeStack) ->
+    @updatedSelectedNodes (node, nodeStack) ->
       nodeStack.length = 0
       depth = 0
       while node.parent and !node.previousSibling
@@ -113,7 +113,7 @@ class Controller
       node
 
   selectRight: ->
-    @updatedSelectedNode (node, nodeStack) ->
+    @updatedSelectedNodes (node, nodeStack) ->
       nodeStack.length = 0
       depth = 0
       while node.parent and !node.nextSibling
@@ -139,15 +139,21 @@ class Controller
         when 'lex'
           console.log("  ", msg, params)
 
-  updatedSelectedNode: (fn) ->
+  updatedSelectedNodes: (fn) ->
     editor = @currentEditor()
     buffer = editor.buffer
-    {document, nodeStack} = @stateForEditor(editor)
-    newRanges = for range in editor.getSelectedBufferRanges()
+    syntaxState = @stateForEditor(editor)
+    selectedRanges = editor.getSelectedBufferRanges()
+
+    if syntaxState.nodeStacks.length isnt selectedRanges.length
+      syntaxState.nodeStacks = selectedRanges.map -> []
+
+    newRanges = for range, i in selectedRanges
       currentStart = buffer.characterIndexForPosition(range.start)
       currentEnd = buffer.characterIndexForPosition(range.end)
       size = currentEnd - currentStart
-      node = document.rootNode.descendantForRange(currentStart, currentEnd - 1)
+      node = syntaxState.document.rootNode.descendantForRange(currentStart, currentEnd - 1)
+      nodeStack = syntaxState.nodeStacks[i]
       if node.position < currentStart or node.position + node.size > currentEnd
         nodeStack.length = 0
       if size > 0
