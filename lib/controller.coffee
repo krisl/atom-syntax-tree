@@ -127,8 +127,18 @@ class Controller
       node
 
   printTree: ->
-    {document} = @stateForEditor(@currentEditor())
-    console.log(document.rootNode.toString())
+    editor = @currentEditor()
+    {document} = @stateForEditor(editor)
+    if editor.getSelectedText() is ''
+      console.log(document.rootNode.toString())
+    else
+      buffer = editor.buffer
+      for range in editor.getSelectedBufferRanges()
+        currentStart = buffer.characterIndexForPosition(range.start)
+        currentEnd = buffer.characterIndexForPosition(range.end)
+        node = document.rootNode.descendantForRange(currentStart, currentEnd - 1)
+        console.log(node.toString())
+    return
 
   toggleDebug: ->
     {document} = @stateForEditor(@currentEditor())
