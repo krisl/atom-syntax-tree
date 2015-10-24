@@ -58,8 +58,27 @@ class Controller
     atom.commands.add(@workspaceElement, "syntax-tree:select-right", @selectRight.bind(this))
     atom.commands.add(@workspaceElement, "syntax-tree:print-tree", @printTree.bind(this))
     atom.commands.add(@workspaceElement, "syntax-tree:toggle-debug", @toggleDebug.bind(this))
+    atom.commands.add(@workspaceElement, "syntax-tree:select-next-error", @selectNextError.bind(this))
 
   stop: ->
+
+  selectNextError: ->
+    findFirstError = (node) ->
+      if node.type is 'ERROR' and node.children.length is 0
+        return node
+      for child in node.children
+        if error = findFirstError(child)
+          return error
+      null
+
+    editor = @currentEditor()
+    if node = findFirstError(@stateForEditor(editor).document.rootNode)
+      editor.setSelectedBufferRange(
+        new Range(
+          editor.buffer.positionForCharacterIndex(node.position),
+          editor.buffer.positionForCharacterIndex(node.position + node.size),
+        )
+      )
 
   selectUp: ->
     @updatedSelectedNode (node, nodeStack, size) ->
