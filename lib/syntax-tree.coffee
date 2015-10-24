@@ -12,3 +12,7 @@ module.exports =
 
   serialize: ->
     {}
+
+  getCurrentDocument: ->
+    if editor = atom.workspace.getActiveTextEditor()
+      @controller?.stateForEditor(editor)?.document
