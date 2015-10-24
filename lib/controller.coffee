@@ -177,7 +177,6 @@ class Controller
         new Range(range.start, range.end)
 
     editor.setSelectedBufferRanges(newRanges)
-    editor.scrollToScreenRange(editor.screenRangeForBufferRange(newRanges[0]))
 
   stateForEditor: (editor) ->
     unless syntaxState = @syntaxStates.get(editor)
