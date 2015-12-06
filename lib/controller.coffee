@@ -123,13 +123,16 @@ class Controller
     return
 
   toggleDebug: ->
-    {document} = @stateForEditor(@currentEditor())
-    document.setDebugger (msg, params, type) ->
-      switch type
-        when 'parse'
-          console.log(msg, params)
-        when 'lex'
-          console.log("  ", msg, params)
+    state = @stateForEditor(@currentEditor())
+    if state.document.getDebugger()
+      state.document.setDebugger(null)
+    else
+      state.document.setDebugger (msg, params, type) ->
+        switch type
+          when 'parse'
+            console.log(msg, params)
+          when 'lex'
+            console.log("  ", msg, params)
 
   updatedSelectedNodes: (fn) ->
     editor = @currentEditor()
