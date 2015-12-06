@@ -5,18 +5,21 @@ TextBufferInput = require("./text-buffer-input")
 unless TextBuffer::onDidTransact?
   originalTransact = TextBuffer::transact
   TextBuffer::transact = ->
-    originalTransact.apply(this, arguments)
+    result = originalTransact.apply(this, arguments)
     this.emitter.emit('did-transact')
+    result
 
   originalUndo = TextBuffer::undo
   TextBuffer::undo = ->
-    originalUndo.apply(this, arguments)
+    result = originalUndo.apply(this, arguments)
     this.emitter.emit('did-transact')
+    result
 
   originalRedo = TextBuffer::redo
   TextBuffer::redo = ->
-    originalRedo.apply(this, arguments)
+    result = originalRedo.apply(this, arguments)
     this.emitter.emit('did-transact')
+    result
 
   TextBuffer::onDidTransact = (callback) ->
     this.emitter.on('did-transact', callback)
