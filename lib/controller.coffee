@@ -21,7 +21,8 @@ class SyntaxState
     editor.buffer.onDidTransact =>
       @nodeStacks.length = 0
       @document.parse()
-    editor.buffer.onDidChange ({oldRange, newRange, newText, oldText}) =>
+
+    editor.buffer.onDidChange ({oldRange, newText, oldText}) =>
       @document.edit(
         position: editor.buffer.characterIndexForPosition(oldRange.start)
         charsInserted: newText.length
@@ -55,17 +56,12 @@ class Controller
 
     editor = @currentEditor()
     if node = findFirstError(@stateForEditor(editor).document.rootNode)
-      editor.setSelectedBufferRange(
-        new Range(
-          editor.buffer.positionForCharacterIndex(node.position),
-          editor.buffer.positionForCharacterIndex(node.position + node.size),
-        )
-      )
+      editor.setSelectedBufferRange(Range(node.startPosition, node.endPosition))
 
   selectUp: ->
-    @updatedSelectedNodes (node, nodeStack, size) ->
+    @updatedSelectedNodes (node, nodeStack, currentStartIndex, currentEndIndex) ->
       newNode = node
-      while newNode and newNode.size is size
+      while newNode and newNode.startIndex is currentStartIndex and newNode.endIndex is currentEndIndex
         newNode = newNode.parent
       if newNode
         nodeStack.push(node)
@@ -143,20 +139,16 @@ class Controller
     newRanges = for range, i in selectedRanges
       currentStart = buffer.characterIndexForPosition(range.start)
       currentEnd = buffer.characterIndexForPosition(range.end)
-      size = currentEnd - currentStart
       node = syntaxState.document.rootNode.descendantForRange(currentStart, currentEnd - 1)
       nodeStack = syntaxState.nodeStacks[i]
-      if node.position < currentStart or node.position + node.size > currentEnd
+      if node.startIndex < currentStart or node.endIndex > currentEnd
         nodeStack.length = 0
-      if size > 0
-        node = fn(node, nodeStack, size)
+      if currentEnd > currentStart
+        node = fn(node, nodeStack, currentStart, currentEnd)
       if node
-        new Range(
-          buffer.positionForCharacterIndex(node.position),
-          buffer.positionForCharacterIndex(node.position + node.size),
-        )
+        Range(node.startPosition, node.endPosition)
       else
-        new Range(range.start, range.end)
+        Range(range.start, range.end)
 
     editor.setSelectedBufferRanges(newRanges)
 
