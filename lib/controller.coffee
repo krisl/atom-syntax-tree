@@ -42,6 +42,7 @@ class Controller
     atom.commands.add(@workspaceElement, "syntax-tree:print-tree", @printTree.bind(this))
     atom.commands.add(@workspaceElement, "syntax-tree:toggle-debug", @toggleDebug.bind(this))
     atom.commands.add(@workspaceElement, "syntax-tree:select-next-error", @selectNextError.bind(this))
+    atom.commands.add(@workspaceElement, "syntax-tree:reparse", @reparse.bind(this))
 
   stop: ->
 
@@ -57,6 +58,9 @@ class Controller
     editor = @currentEditor()
     if node = findFirstError(@stateForEditor(editor).document.rootNode)
       editor.setSelectedBufferRange(Range(node.startPosition, node.endPosition))
+
+  reparse: ->
+    @stateForEditor(@currentEditor()).document.invalidate().parse()
 
   selectUp: ->
     @updatedSelectedNodes (node, nodeStack, currentStartIndex, currentEndIndex) ->
