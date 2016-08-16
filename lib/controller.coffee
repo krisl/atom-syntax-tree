@@ -1,7 +1,6 @@
 Document = require("tree-sitter").Document
 TextBufferInput = require("./text-buffer-input")
 {Range} = require("atom")
-require("./text-buffer-hack")
 
 LANGUAGE_SCOPE_REGEX = /source.(\w+)/
 
@@ -12,17 +11,19 @@ LANGUAGES_MODULES =
 
 class SyntaxState
   constructor: (editor) ->
+    buffer = editor.buffer
+
     @nodeStacks = []
     @document = new Document()
-      .setInput(new TextBufferInput(editor.buffer))
+      .setInput(new TextBufferInput(buffer))
       .setLanguage(getEditorLanguage(editor))
       .parse()
 
-    editor.buffer.onDidTransact =>
+    buffer.onDidChangeText =>
       @nodeStacks.length = 0
       @document.parse()
 
-    editor.buffer.onDidChange ({oldRange, newText, oldText}) =>
+    buffer.onDidChange ({oldRange, newText, oldText}) =>
       @document.edit(
         position: editor.buffer.characterIndexForPosition(oldRange.start)
         charsInserted: newText.length
@@ -48,7 +49,7 @@ class Controller
 
   selectNextError: ->
     findFirstError = (node) ->
-      if node.type is 'ERROR' and node.children.length is 0
+      if node.type is 'ERROR'
         return node
       for child in node.children
         if error = findFirstError(child)

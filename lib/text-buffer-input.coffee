@@ -12,5 +12,6 @@ class TextBufferInput
     line =
       @textBuffer.lines[@point.row]?.slice(@point.column) +
       @textBuffer.lineEndings[@point.row]
-    @point = @point.traverse([1, 0])
+    @point.row++
+    @point.column = 0
     line
