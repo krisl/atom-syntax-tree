@@ -120,7 +120,7 @@ class Controller
       for range in editor.getSelectedBufferRanges()
         currentStart = buffer.characterIndexForPosition(range.start)
         currentEnd = buffer.characterIndexForPosition(range.end)
-        node = document.rootNode.descendantForRange(currentStart, currentEnd - 1)
+        node = document.rootNode.descendantForIndex(currentStart, currentEnd - 1)
         console.log(node.toString())
     return
 
@@ -148,7 +148,7 @@ class Controller
     newRanges = for range, i in selectedRanges
       currentStart = buffer.characterIndexForPosition(range.start)
       currentEnd = buffer.characterIndexForPosition(range.end)
-      node = syntaxState.document.rootNode.descendantForRange(currentStart, currentEnd - 1)
+      node = syntaxState.document.rootNode.descendantForIndex(currentStart, currentEnd - 1)
       nodeStack = syntaxState.nodeStacks[i]
       if node.startIndex < currentStart or node.endIndex > currentEnd
         nodeStack.length = 0
