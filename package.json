@@ -20,7 +20,6 @@
   "dependencies": {
     "tree-sitter": "*",
     "tree-sitter-javascript": "git+https://github.com/maxbrunsfeld/node-tree-sitter-javascript.git",
-    "tree-sitter-c": "git+https://github.com/maxbrunsfeld/node-tree-sitter-c.git",
-    "tree-sitter-golang": "git+https://github.com/vito/node-tree-sitter-golang.git"
+    "tree-sitter-c": "git+https://github.com/maxbrunsfeld/node-tree-sitter-c.git"
   }
 }
