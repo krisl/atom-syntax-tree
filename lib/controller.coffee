@@ -17,7 +17,8 @@ class SyntaxState
     @document = new Document()
       .setInput(new TextBufferInput(buffer))
       .setLanguage(getEditorLanguage(editor))
-      .parse()
+    
+    @document.parse()
 
     buffer.onDidChangeText =>
       @nodeStacks.length = 0
